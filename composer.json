@@ -1,0 +1,13 @@
+{
+	"name": "carlomanf/multipress",
+	"description": "Multipress is a PHP library for managing documents across multiple inter-related domains.",
+	"support": {
+		"issues": "https://github.com/carlomanf/multipress/issues",
+		"source": "https://github.com/carlomanf/multipress"
+	},
+	"autoload": {
+		"psr-4": {
+			"Multipress\\": "src/"
+		}
+	}
+}
