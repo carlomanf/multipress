@@ -113,6 +113,17 @@ class Environment
 	private $user_cache = array();
 
 	/**
+	 * Arbitrary data for this environment.
+	 * Set through the setter method.
+	 *
+	 * @access private
+	 *
+	 * @since 1.1.0
+	 * @var array
+	 */
+	private $data = array();
+
+	/**
 	 * Constructor.
 	 *
 	 * @since 1.0.0
@@ -339,6 +350,27 @@ class Environment
 		{
 			return $this->current_user;
 		}
+
+		if ( $key === 'data' )
+		{
+			return $this->data;
+		}
+
+		return isset( $this->data[ $key ] ) ? $this->data[ $key ] : null;
+	}
+
+	/**
+	 * Setter.
+	 * Used to set arbitrary data.
+	 *
+	 * @since 1.1.0
+	 *
+	 * @param string $key Key.
+	 * @param mixed $value Value.
+	 */
+	public function __set( $key, $value )
+	{
+		$this->data[ $key ] = $value;
 	}
 
 	/**

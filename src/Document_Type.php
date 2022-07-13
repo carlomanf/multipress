@@ -12,6 +12,7 @@ abstract class Document_Type
 	/**
 	 * The slug of this document type.
 	 * This will be visible in all document permalinks.
+	 * Set through the `__set` method and can not be changed once set.
 	 *
 	 * @access private
 	 *
@@ -19,19 +20,6 @@ abstract class Document_Type
 	 * @var string
 	 */
 	private $slug = '';
-
-	/**
-	 * Constructor.
-	 * Can be over-ridden by subclasses.
-	 *
-	 * @since 1.0.0
-	 *
-	 * @param string $slug The slug for this document type.
-	 */
-	public function __construct( string $slug )
-	{
-		$this->slug = $slug;
-	}
 
 	/**
 	 * Getter.
@@ -47,6 +35,23 @@ abstract class Document_Type
 		if ( 'slug' === $key )
 		{
 			return $this->slug;
+		}
+	}
+
+	/**
+	 * Setter.
+	 * Only used to set the slug, which can only be set once.
+	 *
+	 * @since 1.1.0
+	 *
+	 * @param string $key Key.
+	 * @param mixed $value Value.
+	 */
+	final public function __set( $key, $value )
+	{
+		if ( 'slug' === $key && empty( $this->slug ) )
+		{
+			$this->slug = $value;
 		}
 	}
 
