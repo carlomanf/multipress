@@ -107,16 +107,19 @@ abstract class Document_Type
 	 */
 	public function get_by_data( Environment $environment, string $key, $value ): array
 	{
+		$documents = Document::get_by_type( $environment, $this->slug );
+
 		if ( empty( $cache = $environment->get_from_document_cache( $key, (string) $value ) ) )
 		{
-			$documents = array();
-
-			foreach ( Document::get_by_type( $environment, $this->slug ) as $document )
+			foreach ( $documents as $document_key => $document )
 			{
 				if ( $document->data[ $key ] === $value )
 				{
-					$documents[] = $document;
 					$environment->save_to_document_cache( $key, (string) $value, $document );
+				}
+				else
+				{
+					unset( $documents[ $document_key ] );
 				}
 			}
 
@@ -124,7 +127,7 @@ abstract class Document_Type
 		}
 		else
 		{
-			return $cache;
+			return array_intersect_key( $documents, $cache );
 		}
 	}
 

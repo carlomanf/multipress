@@ -301,7 +301,7 @@ final class Domain
 			}
 			else
 			{
-				return end( $cache );
+				return isset( $cache[ $id ] ) ? $cache[ $id ] : null;
 			}
 		}
 	}
@@ -336,7 +336,7 @@ final class Domain
 			}
 			else
 			{
-				return end( $cache );
+				return $cache[ min( array_keys( $cache ) ) ];
 			}
 		}
 	}

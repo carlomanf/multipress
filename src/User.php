@@ -227,7 +227,7 @@ final class User
 			}
 			else
 			{
-				return end( $cache );
+				return isset( $cache[ $id ] ) ? $cache[ $id ] : null;
 			}
 		}
 	}

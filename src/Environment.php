@@ -193,15 +193,15 @@ class Environment
 	 * @param string $key Within the section, the key to store the object under.
 	 * @param mixed $data The object to be stored.
 	 */
-	private function save_to_cache( array &$cache, string $section, string $key, $data )
+	private function save_to_cache( array &$cache, string $section, string $key, $data, $id )
 	{
 		if ( isset( $cache[ $section ][ $key ] ) )
 		{
-			$cache[ $section ][ $key ][] = $data;
+			$cache[ $section ][ $key ][ $id ] = $data;
 		}
 		else
 		{
-			$cache[ $section ][ $key ] = array( $data );
+			$cache[ $section ][ $key ] = array( $id => $data );
 		}
 	}
 
@@ -234,7 +234,7 @@ class Environment
 	 */
 	public function save_to_document_cache( string $section, string $key, Document $data )
 	{
-		$this->save_to_cache( $this->document_cache, $section, $key, $data );
+		$this->save_to_cache( $this->document_cache, $section, $key, $data, $data->id );
 	}
 
 	/**
@@ -263,7 +263,7 @@ class Environment
 	 */
 	public function save_to_domain_cache( string $section, string $key, Domain $data )
 	{
-		$this->save_to_cache( $this->domain_cache, $section, $key, $data );
+		$this->save_to_cache( $this->domain_cache, $section, $key, $data, $data->id );
 	}
 
 	/**
@@ -292,7 +292,7 @@ class Environment
 	 */
 	public function save_to_user_cache( string $section, string $key, User $data )
 	{
-		$this->save_to_cache( $this->user_cache, $section, $key, $data );
+		$this->save_to_cache( $this->user_cache, $section, $key, $data, $data->id );
 	}
 
 	/**
