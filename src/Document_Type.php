@@ -94,6 +94,41 @@ abstract class Document_Type
 	}
 
 	/**
+	 * Returns a document with a particular ID, if it exists and is of this type.
+	 * Can be over-ridden by subclasses.
+	 *
+	 * @since 1.2.0
+	 *
+	 * @param Environment $environment The environment instance, for validating the type.
+	 * @param int $id The requested ID.
+	 *
+	 * @return Document|null The document with the requested ID, or `null` if it could not be found within this type.
+	 */
+	public function get_by_id( Environment $environment, int $id )
+	{
+		$documents = Document::get_by_type( $environment, $this->slug );
+
+		if ( empty( $cache = $environment->get_from_document_cache( 'id', (string) $id ) ) )
+		{
+			foreach ( $documents as $document )
+			{
+				if ( $document->id === $id )
+				{
+					$environment->save_to_document_cache( 'id', (string) $id, $document );
+					return $document;
+				}
+			}
+
+			return null;
+		}
+		else
+		{
+			$intersect = array_intersect_key( $documents, $cache );
+			return isset( $intersect[ $id ] ) ? $intersect[ $id ] : null;
+		}
+	}
+
+	/**
 	 * Returns documents of this type with a specific data key and value.
 	 * Can be over-ridden by subclasses.
 	 *
