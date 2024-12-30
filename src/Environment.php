@@ -253,6 +253,36 @@ class Environment
 	}
 
 	/**
+	 * Clear all documents from the cache.
+	 *
+	 * @since 1.2.0
+	 */
+	public function clear_document_cache()
+	{
+		$this->document_cache = array();
+	}
+
+	/**
+	 * Clear all domains from the cache.
+	 *
+	 * @since 1.2.0
+	 */
+	public function clear_domain_cache()
+	{
+		$this->domain_cache = array();
+	}
+
+	/**
+	 * Clear all users from the cache.
+	 *
+	 * @since 1.2.0
+	 */
+	public function clear_user_cache()
+	{
+		$this->user_cache = array();
+	}
+
+	/**
 	 * Save a domain to the domain cache.
 	 *
 	 * @since 1.0.0
