@@ -63,6 +63,17 @@ class Environment
 	private $current_domain = null;
 
 	/**
+	 * The database used to access cookies for an unauthenticated user.
+	 * Set through the constructor if needed.
+	 *
+	 * @access private
+	 *
+	 * @since 1.2.0
+	 * @var Cookie_Database|null
+	 */
+	private $cookie_database = null;
+
+	/**
 	 * The currently authenticated user, or `null` if no user is authenticated.
 	 *
 	 * @access private
@@ -140,6 +151,12 @@ class Environment
 		$this->genesis_domain_data = $genesis_domain_data;
 		$this->genesis_user_data = $genesis_user_data;
 		$this->current_domain = Domain::get_by_name( $this, $_SERVER['HTTP_HOST'] );
+
+		if ( isset( $this->current_domain ) && $this->current_domain->users_can_register )
+		{
+			$this->cookie_database = new Cookie_Database( $this, $_COOKIE );
+			$this->current_user = $this->cookie_database->get_user();
+		}
 	}
 
 	/**
