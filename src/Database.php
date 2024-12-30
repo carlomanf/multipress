@@ -84,33 +84,40 @@ interface Database
 	 *
 	 * @since 1.0.0
 	 *
+	 * @param int $origin Document origin ID.
+	 * @param int $owner Document owner ID.
+	 * @param string $type Document type.
 	 * @param array $changes Initial data to apply to the document.
 	 *
 	 * @return int The ID of the document.
 	 */
-	public function insert_document( array $changes ): int;
+	public function insert_document( int $origin, int $owner, string $type, array $changes ): int;
 
 	/**
 	 * Insert a new domain into the database.
 	 *
 	 * @since 1.0.0
 	 *
+	 * @param string $name Domain name.
+	 * @param int $origin Domain origin ID.
+	 * @param int $owner Domain owner ID.
 	 * @param array $changes Initial data to apply to the domain.
 	 *
 	 * @return int The ID of the domain.
 	 */
-	public function insert_domain( array $changes ): int;
+	public function insert_domain( string $name, int $origin, int $owner, array $changes ): int;
 
 	/**
 	 * Insert a new user into the database.
 	 *
 	 * @since 1.0.0
 	 *
+	 * @param int $origin User origin ID.
 	 * @param array $changes Initial data to apply to the user.
 	 *
 	 * @return int The ID of the user.
 	 */
-	public function insert_user( array $changes ): int;
+	public function insert_user( int $origin, array $changes ): int;
 
 	/**
 	 * Update a document in the database.

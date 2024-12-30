@@ -10,16 +10,6 @@ namespace Multipress;
 final class Document
 {
 	/**
-	 * Array of string keys and string values for this document.
-	 *
-	 * @access private
-	 *
-	 * @since 1.0.0
-	 * @var string[]
-	 */
-	private $data = array();
-
-	/**
 	 * The database for saving this document.
 	 * Set through the constructor.
 	 *
@@ -29,17 +19,6 @@ final class Document
 	 * @var Database
 	 */
 	private $database;
-
-	/**
-	 * The domain on which this document originates.
-	 * Set through the constructor.
-	 *
-	 * @access private
-	 *
-	 * @since 1.0.0
-	 * @var Domain
-	 */
-	private $origin;
 
 	/**
 	 * The numeric ID of this document.
@@ -53,8 +32,19 @@ final class Document
 	private $id = null;
 
 	/**
+	 * The domain on which this document originates.
+	 * Set through the constructor and is not updatable.
+	 *
+	 * @access private
+	 *
+	 * @since 1.0.0
+	 * @var Domain
+	 */
+	private $origin;
+
+	/**
 	 * The user with ownership over this document.
-	 * Set through the constructor.
+	 * Set through the constructor and is not updatable.
 	 *
 	 * @access private
 	 *
@@ -65,7 +55,7 @@ final class Document
 
 	/**
 	 * The type of this document.
-	 * Set through the constructor.
+	 * Set through the constructor and is not updatable.
 	 *
 	 * @access private
 	 *
@@ -75,8 +65,20 @@ final class Document
 	private $type;
 
 	/**
+	 * Array of string keys and string values for this document.
+	 *
+	 * @access private
+	 *
+	 * @since 1.0.0
+	 * @var string[]
+	 */
+	private $data = array();
+
+	/**
 	 * Getter.
-	 * Values of the $data array can be accessed by passing the key.
+	 * Values of the `$data` array can be accessed by passing the key.
+	 *
+	 * `id`, `owner`, `origin`, `type` and `data` are reserved words and access their respective fields rather than the `$data` array.
 	 *
 	 * @since 1.0.0
 	 *
@@ -91,11 +93,6 @@ final class Document
 			return $this->id;
 		}
 
-		if ( $key === 'type' )
-		{
-			return $this->type;
-		}
-
 		if ( $key === 'owner' )
 		{
 			return $this->owner;
@@ -106,12 +103,36 @@ final class Document
 			return $this->origin;
 		}
 
+		if ( $key === 'type' )
+		{
+			return $this->type;
+		}
+
 		if ( $key === 'data' )
 		{
 			return $this->data;
 		}
 
 		return isset( $this->data[ $key ] ) ? $this->data[ $key ] : null;
+	}
+
+	/**
+	 * Setter.
+	 * Values of the `$data` array can be accessed by passing the key.
+	 *
+	 * `id`, `owner`, `origin`, `type` and `data` are reserved words and do not save to the `$data` array.
+	 *
+	 * @since 1.2.0
+	 *
+	 * @param string $key Key.
+	 * @param string $value Value.
+	 */
+	public function __set( string $key, string $value )
+	{
+		if ( !in_array( $key, array( 'id', 'owner', 'origin', 'type', 'data' ), true ) )
+		{
+			$this->data[ $key ] = $value;
+		}
 	}
 
 	/**
@@ -229,7 +250,7 @@ final class Document
 		{
 			if ( $this->is_editable( $user ) )
 			{
-				$this->database->update_document( $this->id, array() );
+				$this->database->update_document( $this->id, $this->data );
 				$this->type->update( $this );
 			}
 		}
@@ -237,7 +258,7 @@ final class Document
 		{
 			if ( $this->is_creatable( $user ) )
 			{
-				$this->id = $this->database->insert_document( array() );
+				$this->id = $this->database->insert_document( $this->origin->id, $this->owner->id, $this->type->slug, $this->data );
 				$this->type->insert( $this );
 			}
 		}

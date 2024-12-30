@@ -33,7 +33,7 @@ final class Domain
 
 	/**
 	 * The hostname of this domain, e.g. `example.org`.
-	 * This variable is set through by the `genesis` and `new` static methods.
+	 * This variable is set through by the `genesis` and `new` static methods and is not updatable.
 	 *
 	 * @access private
 	 *
@@ -56,7 +56,7 @@ final class Domain
 	/**
 	 * The user with ownership over this domain.
 	 * The genesis domain is owned by the genesis user.
-	 * This variable is set through by the `genesis` and `new` static methods.
+	 * This variable is set through by the `genesis` and `new` static methods and is not updatable.
 	 *
 	 * @access private
 	 *
@@ -147,10 +147,12 @@ final class Domain
 	/**
 	 * Getter.
 	 *
-	 * Values of the $data array can be accessed by passing the key.
+	 * Values of the `$data` array can be accessed by passing the key.
 	 * The `users_can_register` key is special, returning a bool value with a default value of `true`.
 	 * The `depth_allowed` key is special, returning an int value with a default value of -1.
-	 * 
+	 *
+	 * `id`, `name`, `owner`, `origin`, `ancestry` and `data` are reserved words and access their respective fields rather than the `$data` array.
+	 *
 	 * It should be noted that although the genesis domain has an origin of `null`, passing `origin` as the key does not return `null` but the genesis domain itself.
 	 *
 	 * The `ancestry` key can be used to access the chain of origins, up to and including the genesis domain.
@@ -213,6 +215,25 @@ final class Domain
 		}
 
 		return isset( $this->data[ $key ] ) ? $this->data[ $key ] : null;
+	}
+
+	/**
+	 * Setter.
+	 * Values of the `$data` array can be accessed by passing the key.
+	 *
+	 * `id`, `name`, `owner`, `origin`, `ancestry` and `data` are reserved words and do not save to the `$data` array.
+	 *
+	 * @since 1.2.0
+	 *
+	 * @param string $key Key.
+	 * @param string $value Value.
+	 */
+	public function __set( string $key, string $value )
+	{
+		if ( !in_array( $key, array( 'id', 'name', 'owner', 'origin', 'ancestry', 'data' ), true ) )
+		{
+			$this->data[ $key ] = $value;
+		}
 	}
 
 	/**
@@ -423,14 +444,14 @@ final class Domain
 		{
 			if ( $this->id !== 0 && $this->is_editable( $user ) )
 			{
-				$this->database->update_domain( $this->id, array() );
+				$this->database->update_domain( $this->id, $this->data );
 			}
 		}
 		else
 		{
 			if ( $this->is_creatable( $user ) )
 			{
-				$this->id = $this->database->insert_domain( array() );
+				$this->id = $this->database->insert_domain( $this->name, $this->origin->id, $this->owner->id, $this->data );
 			}
 		}
 	}

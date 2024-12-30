@@ -117,7 +117,9 @@ final class User
 
 	/**
 	 * Getter.
-	 * Values of the $data array can be accessed by passing the key.
+	 * Values of the `$data` array can be accessed by passing the key.
+	 *
+	 * `id`, `origin` and `data` are reserved words and access their respective fields rather than the `$data` array.
 	 *
 	 * @since 1.0.0
 	 *
@@ -143,6 +145,25 @@ final class User
 		}
 
 		return isset( $this->data[ $key ] ) ? $this->data[ $key ] : null;
+	}
+
+	/**
+	 * Setter.
+	 * Values of the `$data` array can be accessed by passing the key.
+	 *
+	 * `id`, `origin` and `data` are reserved words and do not save to the `$data` array.
+	 *
+	 * @since 1.2.0
+	 *
+	 * @param string $key Key.
+	 * @param string $value Value.
+	 */
+	public function __set( string $key, string $value )
+	{
+		if ( !in_array( $key, array( 'id', 'origin', 'data' ), true ) )
+		{
+			$this->data[ $key ] = $value;
+		}
 	}
 
 	/**
@@ -245,14 +266,14 @@ final class User
 		{
 			if ( $this->id !== 0 && $this->is_editable( $user ) )
 			{
-				$this->database->update_user( $this->id, array() );
+				$this->database->update_user( $this->id, $this->data );
 			}
 		}
 		else
 		{
 			if ( $this->is_creatable( $user ) )
 			{
-				$this->id = $this->database->insert_user( array() );
+				$this->id = $this->database->insert_user( $this->origin->id, $this->data );
 			}
 		}
 	}
