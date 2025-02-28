@@ -75,6 +75,28 @@ final class Document
 	private $data = array();
 
 	/**
+	 * Temporary cache for documents yet to be permission checked.
+	 * The value can be checked using the `constructing` static method.
+	 *
+	 * @access private
+	 *
+	 * @since 1.2.1
+	 * @var array
+	 */
+	private static $constructing = array();
+
+	/**
+	 * Internal utility to prevent cycles in the document permission checks.
+	 * The value is not accessible via any public method.
+	 *
+	 * @access private
+	 *
+	 * @since 1.2.1
+	 * @var array
+	 */
+	private static $checking_permission = array();
+
+	/**
 	 * Getter.
 	 * Values of the `$data` array can be accessed by passing the key.
 	 *
@@ -157,37 +179,76 @@ final class Document
 	 */
 	private static function construct( array $rows, Environment $environment, bool $single = false )
 	{
-		$documents = array();
+		$documents = $single ? null : array();
 
 		foreach ( $rows as $id => $row )
 		{
-			$type = $environment->get_type( (string) $row['type'] );
-			$origin = Domain::get_by_id( $environment, (int) $row['origin'] );
-			$owner = User::get_by_id( $environment, (int) $row['owner'] );
-
-			if ( !isset( $type ) || !isset( $origin ) || !isset( $owner ) )
+			if ( isset( self::$constructing[ (string) $row['type'] ] ) && is_array( self::$constructing[ (string) $row['type'] ] ) )
 			{
-				continue;
+				self::$constructing[ (string) $row['type'] ][ (int) $id ] = $row;
 			}
-
-			$document = new Document( $environment->database, $type, $owner, $origin );
-			$document->data = (array) $row['data'];
-			$document->id = (int) $id;
-
-			if ( is_null( $environment->current_user ) ? !$document->is_readable_by_public( $environment->current_domain ) : !$document->is_readable( $environment->current_user ) )
+			else
 			{
-				continue;
+				self::$constructing[ (string) $row['type'] ] = array( (int) $id => $row );
 			}
-
-			if ( $single )
-			{
-				return $document;
-			}
-
-			$documents[ (int) $id ] = $document;
 		}
 
-		return $single ? null : $documents;
+		foreach ( $rows as $id => $row )
+		{
+			if ( isset( self::$checking_permission[ (int) $id ] ) )
+			{
+				continue;
+			}
+
+			if ( !$single || !isset( $documents ) )
+			{
+				$type = $environment->get_type( (string) $row['type'] );
+				$origin = Domain::get_by_id( $environment, (int) $row['origin'] );
+				$owner = User::get_by_id( $environment, (int) $row['owner'] );
+
+				if ( isset( $type ) && isset( $origin ) && isset( $owner ) )
+				{
+					$document = new Document( $environment->database, $type, $owner, $origin );
+					$document->data = (array) $row['data'];
+					$document->id = (int) $id;
+
+					self::$checking_permission[ (int) $id ] = true;
+
+					if ( is_null( $environment->current_user ) ? $document->is_readable_by_public( $environment->current_domain ) : $document->is_readable( $environment->current_user ) )
+					{
+						if ( $single )
+						{
+							$documents = $document;
+						}
+						else
+						{
+							$documents[ (int) $id ] = $document;
+						}
+					}
+
+					unset( self::$checking_permission[ (int) $id ] );
+				}
+			}
+
+			unset( self::$constructing[ (string) $row['type'] ][ (int) $id ] );
+		}
+
+		return $documents;
+	}
+
+	/**
+	 * Checks if construction of a document type is currently in progress.
+	 * Can be used to avoid caching incomplete results.
+	 *
+	 * @since 1.2.1
+	 *
+	 * @param Document_Type $type Document type.
+	 *
+	 * @return bool If the type is still being constructed.
+	 */
+	public static function constructing( Document_Type $type ): bool
+	{
+		return !empty( self::$constructing[ $type->slug ] );
 	}
 
 	/**
@@ -204,7 +265,9 @@ final class Document
 	{
 		if ( empty( $cache = $environment->get_from_document_cache( 'type', $type ) ) )
 		{
-			foreach ( ( $documents = self::construct( $environment->database->get_documents_by_type( $type ), $environment ) ) as $document )
+			$documents = self::construct( empty( self::$constructing[ $type ] ) ? $environment->database->get_documents_by_type( $type ) : self::$constructing[ $type ], $environment );
+
+			foreach ( $documents as $document )
 			{
 				$environment->save_to_document_cache( 'id', (string) $document->id, $document );
 				$environment->save_to_document_cache( 'type', $document->type->slug, $document );

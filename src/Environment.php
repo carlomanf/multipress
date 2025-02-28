@@ -242,6 +242,7 @@ class Environment
 
 	/**
 	 * Save a document to the document cache.
+	 * Does not save if the document type is currently being constructed.
 	 *
 	 * @since 1.0.0
 	 *
@@ -251,7 +252,10 @@ class Environment
 	 */
 	public function save_to_document_cache( string $section, string $key, Document $data )
 	{
-		$this->save_to_cache( $this->document_cache, $section, $key, $data, $data->id );
+		if ( !Document::constructing( $data->type ) )
+		{
+			$this->save_to_cache( $this->document_cache, $section, $key, $data, $data->id );
+		}
 	}
 
 	/**
@@ -277,26 +281,6 @@ class Environment
 	public function clear_document_cache()
 	{
 		$this->document_cache = array();
-	}
-
-	/**
-	 * Clear all domains from the cache.
-	 *
-	 * @since 1.2.0
-	 */
-	public function clear_domain_cache()
-	{
-		$this->domain_cache = array();
-	}
-
-	/**
-	 * Clear all users from the cache.
-	 *
-	 * @since 1.2.0
-	 */
-	public function clear_user_cache()
-	{
-		$this->user_cache = array();
 	}
 
 	/**
@@ -329,6 +313,16 @@ class Environment
 	}
 
 	/**
+	 * Clear all domains from the cache.
+	 *
+	 * @since 1.2.0
+	 */
+	public function clear_domain_cache()
+	{
+		$this->domain_cache = array();
+	}
+
+	/**
 	 * Save a user to the user cache.
 	 *
 	 * @since 1.0.0
@@ -358,6 +352,16 @@ class Environment
 	}
 
 	/**
+	 * Clear all users from the cache.
+	 *
+	 * @since 1.2.0
+	 */
+	public function clear_user_cache()
+	{
+		$this->user_cache = array();
+	}
+
+	/**
 	 * Getter.
 	 *
 	 * @since 1.0.0
@@ -366,7 +370,7 @@ class Environment
 	 *
 	 * @return mixed Value.
 	 */
-	public function __get( $key )
+	final public function __get( $key )
 	{
 		if ( $key === 'database' )
 		{
@@ -415,7 +419,7 @@ class Environment
 	 * @param string $key Key.
 	 * @param mixed $value Value.
 	 */
-	public function __set( $key, $value )
+	final public function __set( $key, $value )
 	{
 		$this->data[ $key ] = $value;
 	}
